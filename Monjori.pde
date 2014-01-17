@@ -21,7 +21,7 @@ class Monjori {
   void setup_obj() {
     //size(640, 360, P2D);
     //noStroke();
-    offscreen.textureWrap(CLAMP);
+    //offscreen.textureWrap(REPEAT);
   }
 
   void draw_obj(PVector surfaceMouse, PGraphics offscreen) {

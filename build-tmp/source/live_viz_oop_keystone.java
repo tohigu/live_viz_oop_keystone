@@ -21,6 +21,7 @@ public class live_viz_oop_keystone extends PApplet {
 Keystone ks;
 CornerPinSurface surface;
 CornerPinSurface surface2;
+CornerPinSurface surface3;
 
 PGraphics offscreen;
 
@@ -55,6 +56,9 @@ PenroseTile PT;
 //mode 8
 Particles PS;
 
+//mode 9
+Spore1 Spo;
+
 public void setup(){
   // Keystone will only work with P3D or OPENGL renderers, 
   // since it relies on texture mapping to deform
@@ -63,6 +67,7 @@ public void setup(){
   ks = new Keystone(this);
   surface = ks.createCornerPinSurface(512, 700, 20);
   surface2 = ks.createCornerPinSurface(512, 700, 20);
+  surface3 = ks.createCornerPinSurface(512, 700, 20);
   
   // We need an offscreen buffer to draw the surface we
   // want projected
@@ -80,6 +85,7 @@ public void setup(){
   FT = new FractalTree(offscreen);
   PT = new PenroseTile(offscreen);
   PS = new Particles(offscreen);
+  //Spo = new Spore1(offscreen);
   
   imgMask = loadImage("mask.png");
   
@@ -100,6 +106,7 @@ public void draw(){
   // surface from your screen. 
   PVector surfaceMouse = surface.getTransformedMouse();
 
+  //offscreen.textureWrap(REPEAT);
   // Draw the scene, offscreen
   offscreen.beginDraw();
   
@@ -115,6 +122,7 @@ public void draw(){
     Mon.draw_obj(surfaceMouse, offscreen);
     break;
   case '3': 
+    offscreen.textureWrap(REPEAT);
     Def.draw_obj(surfaceMouse, offscreen);
     break;
   case '4': 
@@ -132,14 +140,15 @@ public void draw(){
   case '8':
     PS.draw_obj(surfaceMouse, offscreen);
     break;
+  case '9':
+    Spo.draw_obj(surfaceMouse, offscreen);
+    break;
   default:
     offscreen.background(0,0);
     break;
   }
-  /*offscreen.fill(255);
-  offscreen.textSize(16);
-  offscreen.text("Frame rate: " + int(frameRate), offscreen.width/2, offscreen.height/2);*/
-  println("Frame rate: " + PApplet.parseInt(frameRate), offscreen.width/2, offscreen.height/2);
+
+  //println("Frame rate: " + int(frameRate), offscreen.width/2, offscreen.height/2);
   offscreen.endDraw();
   //image(offscreen, 0, 0, offscreen.width, offscreen.height);
   // most likely, you'll want a black background to minimize
@@ -149,6 +158,7 @@ public void draw(){
   // render the scene, transformed using the corner pin surface
   surface.render(offscreen);
   surface2.render(offscreen);
+  surface3.render(offscreen);
   
 }
   
@@ -201,6 +211,11 @@ public void draw(){
     prev_mode = current_mode;
     current_mode = key;
     break;
+  /*case '9':
+    Spo.setup_obj();
+    prev_mode = current_mode;
+    current_mode = key;
+    break;*/
 
   //CONTROL KEYS
   case 'c':
@@ -211,6 +226,7 @@ public void draw(){
   case 'p':
     if (cursor == true){
       noCursor();
+      cursor = false;
     }
     else{
       cursor();
@@ -257,6 +273,12 @@ public void draw(){
   case '7': 
     PT.pause_obj();
     break;
+  case '8': 
+    PS.pause_obj();
+    break;
+  case '9': 
+    Spo.pause_obj();
+    break;
   default:
     break;
   }
@@ -264,6 +286,50 @@ public void draw(){
 }
 
 
+class Cell {
+ int x, y;
+ int black; 
+
+ Cell(int xin, int yin) {
+   x = xin;
+   y = yin;
+   black = color(0, 0, 0);
+ }
+
+   // Perform action based on surroundings
+ public void run(PGraphics offscreen, World w) {
+   // Fix cell coordinates
+   while(x < 0) {
+     x+=offscreen.width;
+   }
+   while(x > offscreen.width - 1) {
+     x-=offscreen.width;
+   }
+   while(y < 0) {
+     y+=offscreen.height;
+   }
+   while(y > offscreen.height - 1) {
+     y-=offscreen.height;
+   }
+   
+   // Cell instructions
+   if (w.getpix(offscreen, x + 1, y) == black) {
+     move(offscreen, 0, 1, w);
+   } else if (w.getpix(offscreen, x, y - 1) != black && w.getpix(offscreen, x, y + 1) != black) {
+     move(offscreen, (int)random(9) - 4, (int)random(9) - 4, w);
+   }
+ }
+ 
+ // Will move the cell (dx, dy) units if that space is empty
+ public void move(PGraphics offscreen, int dx, int dy, World w) {
+   if (w.getpix(offscreen, x + dx, y + dy) == black) {
+     w.setpix(offscreen, x + dx, y + dy, w.getpix(offscreen, x, y));
+     w.setpix(offscreen, x, y, color(0));
+     x += dx;
+     y += dy;
+   }
+ }
+}
 // GLSL version of Conway's game of life, ported from GLSL sandbox:
 // http://glsl.heroku.com/e#207.3
 // Exemplifies the use of the buffer uniform in the shader, that gives
@@ -325,8 +391,8 @@ PShader deform;
 
 public Deform(PGraphics offscreen){
 
-  offscreen.textureWrap(REPEAT);
-  tex = loadImage("tex1.jpg");
+  //offscreen.textureWrap(REPEAT);
+  
  
   deform = loadShader("deform.glsl");
   deform.set("resolution", PApplet.parseFloat(offscreen.width), PApplet.parseFloat(offscreen.height));
@@ -337,7 +403,8 @@ public void setup_obj() {
   //size(640, 360, P2D);
   
   //offscreen.textureWrap(REPEAT);
-
+  offscreen.textureWrap(0);
+  tex = loadImage("tex1.jpg");
 }
 
 public void draw_obj(PVector surfaceMouse, PGraphics offscreen) {
@@ -346,6 +413,7 @@ public void draw_obj(PVector surfaceMouse, PGraphics offscreen) {
   deform.set("mouse", surfaceMouse.x, surfaceMouse.y);
   offscreen.shader(deform);
   offscreen.image(tex, 0, 0, offscreen.width, offscreen.height);
+  //offscreen.texture(tex);
 }
 
 public void pause_obj(){
@@ -524,7 +592,7 @@ class Monjori {
   public void setup_obj() {
     //size(640, 360, P2D);
     //noStroke();
-    offscreen.textureWrap(CLAMP);
+    //offscreen.textureWrap(REPEAT);
   }
 
   public void draw_obj(PVector surfaceMouse, PGraphics offscreen) {
@@ -755,6 +823,10 @@ class Particles{
   } 
 
   public void setup_obj(){
+    
+  }
+
+  public void pause_obj(){
     
   }
 
@@ -998,134 +1070,98 @@ class PenroseLSystem extends LSystem {
 
 
 
-///**
-// * Spore 1 
-// * by Mike Davis. 
-// * 
-// * A short program for alife experiments. Click in the window to restart.
-// * Each cell is represented by a pixel on the display as well as an entry in
-// * the array 'cells'. Each cell has a run() method, which performs actions
-// * based on the cell's surroundings.  Cells run one at a time (to avoid conflicts
-// * like wanting to move to the same space) and in random order.
-// */
-//
-//World w;
-//int numcells = 0;
-//int maxcells = 6700;
-//Cell[] cells = new Cell[maxcells];
-//color spore_color;
-//// set lower for smoother animation, higher for faster simulation
-//int runs_per_loop = 10000;
-//color black = color(0, 0, 0);
-//  
-//void setup() {
-//  size(640, 360);
-//  frameRate(24);
-//  reset();
-//}
-//
-//void reset() {
-//  clearScreen();  
-//  w = new World();
-//  spore_color = color(172, 255, 128);
-//  seed();
-//}
-//
-//void seed() {
-//  // Add cells at random places
-//  for (int i = 0; i < maxcells; i++)
-//  {
-//    int cX = (int)random(width);
-//    int cY = (int)random(height);
-//    if (w.getpix(cX, cY) == black) {
-//      w.setpix(cX, cY, spore_color);
-//      cells[numcells] = new Cell(cX, cY);
-//      numcells++;
-//    }
-//  }
-//}
-//
-//void draw() {
-//  // Run cells in random order
-//  for (int i = 0; i < runs_per_loop; i++) {
-//    int selected = min((int)random(numcells), numcells - 1);
-//    cells[selected].run();
-//  }
-//}
-//
-//void clearScreen() {
-//  background(0);
-//}
-//
-//class Cell {
-//  int x, y;
-//  Cell(int xin, int yin) {
-//    x = xin;
-//    y = yin;
-//  }
-//
-//    // Perform action based on surroundings
-//  void run() {
-//    // Fix cell coordinates
-//    while(x < 0) {
-//      x+=width;
-//    }
-//    while(x > width - 1) {
-//      x-=width;
-//    }
-//    while(y < 0) {
-//      y+=height;
-//    }
-//    while(y > height - 1) {
-//      y-=height;
-//    }
-//    
-//    // Cell instructions
-//    if (w.getpix(x + 1, y) == black) {
-//      move(0, 1);
-//    } else if (w.getpix(x, y - 1) != black && w.getpix(x, y + 1) != black) {
-//      move((int)random(9) - 4, (int)random(9) - 4);
-//    }
-//  }
-//  
-//  // Will move the cell (dx, dy) units if that space is empty
-//  void move(int dx, int dy) {
-//    if (w.getpix(x + dx, y + dy) == black) {
-//      w.setpix(x + dx, y + dy, w.getpix(x, y));
-//      w.setpix(x, y, color(0));
-//      x += dx;
-//      y += dy;
-//    }
-//  }
-//}
-//
-////  The World class simply provides two functions, get and set, which access the
-////  display in the same way as getPixel and setPixel.  The only difference is that
-////  the World class's get and set do screen wraparound ("toroidal coordinates").
-//class World {
-//  
-//  void setpix(int x, int y, int c) {
-//    while(x < 0) x+=width;
-//    while(x > width - 1) x-=width;
-//    while(y < 0) y+=height;
-//    while(y > height - 1) y-=height;
-//    set(x, y, c);
-//  }
-//  
-//  color getpix(int x, int y) {
-//    while(x < 0) x+=width;
-//    while(x > width - 1) x-=width;
-//    while(y < 0) y+=height;
-//    while(y > height - 1) y-=height;
-//    return get(x, y);
-//  }
-//}
-//
-//void mousePressed() {
-//  numcells = 0;
-//  reset();
-//}
+/**
+* Spore 1 
+* by Mike Davis. 
+* 
+* A short program for alife experiments. Click in the window to restart.
+* Each cell is represented by a pixel on the display as well as an entry in
+* the array 'cells'. Each cell has a run() method, which performs actions
+* based on the cell's surroundings.  Cells run one at a time (to avoid conflicts
+* like wanting to move to the same space) and in random order.
+*/
 
+class Spore1{
+
+	World w;
+	int numcells = 0;
+	int maxcells = 6700;
+	Cell[] cells = new Cell[maxcells];
+	int spore_color;
+	// set lower for smoother animation, higher for faster simulation
+	int runs_per_loop = 10000;
+	int black = color(0, 0, 0);
+	 
+	public Spore1(PGraphics offscreen) {
+	 //size(640, 360);
+	 frameRate(24);
+	 offscreen.background(0);
+	 w = new World();
+	 spore_color = color(172, 255, 128);
+	 seed();
+	}
+
+	public void setup_obj(){
+//
+	}
+
+
+
+
+	public void seed() {
+	 // Add cells at random places
+	 for (int i = 0; i < maxcells; i++)
+	 {
+	   int cX = (int)random(offscreen.width);
+	   int cY = (int)random(offscreen.height);
+	   if (w.getpix(offscreen, cX, cY) == black) {
+	     w.setpix(offscreen, cX, cY, spore_color);
+	     cells[numcells] = new Cell(cX, cY);
+	     numcells++;
+	   }
+	 }
+	}
+
+	public void draw_obj(PVector surfaceMouse, PGraphics offscreen) {
+	 // Run cells in random order
+	 for (int i = 0; i < runs_per_loop; i++) {
+	   int selected = min((int)random(numcells), numcells - 1);
+	   cells[selected].run(offscreen, w);
+	 }
+	}
+
+	public void pause_obj(){
+
+		frameRate(60);
+	}
+
+
+
+
+
+
+}
+//  The World class simply provides two functions, get and set, which access the
+//  display in the same way as getPixel and setPixel.  The only difference is that
+//  the World class's get and set do screen wraparound ("toroidal coordinates").
+class World {
+ 
+ public void setpix(PGraphics offscreen , int x, int y, int c) {
+   while(x < 0) x+= offscreen.width;
+   while(x > width - 1) x-= offscreen.width;
+   while(y < 0) y+= offscreen.height;
+   while(y > height - 1) y-= offscreen.height;
+   offscreen.set(x, y, c);
+ }
+ 
+ public int getpix(PGraphics offscreen , int x, int y) {
+   while(x < 0) x+= offscreen.width;
+   while(x > width - 1) x-= offscreen.width;
+   while(y < 0) y+= offscreen.height;
+   while(y > height - 1) y-= offscreen.height;
+   return offscreen.get(x, y);
+ }
+}
   static public void main(String[] passedArgs) {
     String[] appletArgs = new String[] { "live_viz_oop_keystone" };
     if (passedArgs != null) {

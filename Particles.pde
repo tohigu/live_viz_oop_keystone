@@ -20,6 +20,10 @@ class Particles{
     
   }
 
+  void pause_obj(){
+    
+  }
+
   void draw_obj(PVector surfaceMouse, PGraphics offscreen) {
     offscreen.background(0);
     ps.update();

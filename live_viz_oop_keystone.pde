@@ -3,6 +3,7 @@ import deadpixel.keystone.*;
 Keystone ks;
 CornerPinSurface surface;
 CornerPinSurface surface2;
+CornerPinSurface surface3;
 
 PGraphics offscreen;
 
@@ -37,6 +38,9 @@ PenroseTile PT;
 //mode 8
 Particles PS;
 
+//mode 9
+Spore1 Spo;
+
 void setup(){
   // Keystone will only work with P3D or OPENGL renderers, 
   // since it relies on texture mapping to deform
@@ -45,6 +49,7 @@ void setup(){
   ks = new Keystone(this);
   surface = ks.createCornerPinSurface(512, 700, 20);
   surface2 = ks.createCornerPinSurface(512, 700, 20);
+  surface3 = ks.createCornerPinSurface(512, 700, 20);
   
   // We need an offscreen buffer to draw the surface we
   // want projected
@@ -62,6 +67,7 @@ void setup(){
   FT = new FractalTree(offscreen);
   PT = new PenroseTile(offscreen);
   PS = new Particles(offscreen);
+  //Spo = new Spore1(offscreen);
   
   imgMask = loadImage("mask.png");
   
@@ -82,6 +88,7 @@ void draw(){
   // surface from your screen. 
   PVector surfaceMouse = surface.getTransformedMouse();
 
+  //offscreen.textureWrap(REPEAT);
   // Draw the scene, offscreen
   offscreen.beginDraw();
   
@@ -97,6 +104,7 @@ void draw(){
     Mon.draw_obj(surfaceMouse, offscreen);
     break;
   case '3': 
+    offscreen.textureWrap(REPEAT);
     Def.draw_obj(surfaceMouse, offscreen);
     break;
   case '4': 
@@ -114,14 +122,15 @@ void draw(){
   case '8':
     PS.draw_obj(surfaceMouse, offscreen);
     break;
+  case '9':
+    Spo.draw_obj(surfaceMouse, offscreen);
+    break;
   default:
     offscreen.background(0,0);
     break;
   }
-  /*offscreen.fill(255);
-  offscreen.textSize(16);
-  offscreen.text("Frame rate: " + int(frameRate), offscreen.width/2, offscreen.height/2);*/
-  println("Frame rate: " + int(frameRate), offscreen.width/2, offscreen.height/2);
+
+  //println("Frame rate: " + int(frameRate), offscreen.width/2, offscreen.height/2);
   offscreen.endDraw();
   //image(offscreen, 0, 0, offscreen.width, offscreen.height);
   // most likely, you'll want a black background to minimize
@@ -131,6 +140,7 @@ void draw(){
   // render the scene, transformed using the corner pin surface
   surface.render(offscreen);
   surface2.render(offscreen);
+  surface3.render(offscreen);
   
 }
   
@@ -183,6 +193,11 @@ void draw(){
     prev_mode = current_mode;
     current_mode = key;
     break;
+  /*case '9':
+    Spo.setup_obj();
+    prev_mode = current_mode;
+    current_mode = key;
+    break;*/
 
   //CONTROL KEYS
   case 'c':
@@ -193,6 +208,7 @@ void draw(){
   case 'p':
     if (cursor == true){
       noCursor();
+      cursor = false;
     }
     else{
       cursor();
@@ -238,6 +254,12 @@ void draw(){
     break;
   case '7': 
     PT.pause_obj();
+    break;
+  case '8': 
+    PS.pause_obj();
+    break;
+  case '9': 
+    Spo.pause_obj();
     break;
   default:
     break;

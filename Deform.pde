@@ -15,8 +15,8 @@ PShader deform;
 
 public Deform(PGraphics offscreen){
 
-  offscreen.textureWrap(REPEAT);
-  tex = loadImage("tex1.jpg");
+  //offscreen.textureWrap(REPEAT);
+  
  
   deform = loadShader("deform.glsl");
   deform.set("resolution", float(offscreen.width), float(offscreen.height));
@@ -27,7 +27,8 @@ void setup_obj() {
   //size(640, 360, P2D);
   
   //offscreen.textureWrap(REPEAT);
-
+  offscreen.textureWrap(0);
+  tex = loadImage("tex1.jpg");
 }
 
 void draw_obj(PVector surfaceMouse, PGraphics offscreen) {
@@ -36,6 +37,7 @@ void draw_obj(PVector surfaceMouse, PGraphics offscreen) {
   deform.set("mouse", surfaceMouse.x, surfaceMouse.y);
   offscreen.shader(deform);
   offscreen.image(tex, 0, 0, offscreen.width, offscreen.height);
+  //offscreen.texture(tex);
 }
 
 void pause_obj(){

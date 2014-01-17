@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config updated="2012.2.7-12:10:0" version="1.0">
+  <shapes>
+    <shape media="the_employee_v01web.mov" mediaPath="the_employee_v01web.mov" mediaType="movie" name="shape7.3309926E8">
+      <vertices count="4">
+        <vertex dx="0.0" dy="0.0" sx="0.0" sy="0.0"/>
+        <vertex dx="640.0" dy="0.0" sx="640.0" sy="0.0"/>
+        <vertex dx="640.0" dy="480.0" sx="640.0" sy="480.0"/>
+        <vertex dx="0.0" dy="480.0" sx="0.0" sy="480.0"/>
+      </vertices>
+    </shape>
+  </shapes>
+</config>

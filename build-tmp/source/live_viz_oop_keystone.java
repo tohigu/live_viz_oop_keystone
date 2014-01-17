@@ -52,6 +52,9 @@ FractalTree FT;
 //mode 7
 PenroseTile PT;
 
+//mode 8
+Particles PS;
+
 public void setup(){
   // Keystone will only work with P3D or OPENGL renderers, 
   // since it relies on texture mapping to deform
@@ -76,6 +79,7 @@ public void setup(){
   Neb = new Nebula(offscreen);
   FT = new FractalTree(offscreen);
   PT = new PenroseTile(offscreen);
+  PS = new Particles(offscreen);
   
   imgMask = loadImage("mask.png");
   
@@ -124,6 +128,9 @@ public void draw(){
     break;
   case '7':
     PT.draw_obj(surfaceMouse, offscreen);
+    break;
+  case '8':
+    PS.draw_obj(surfaceMouse, offscreen);
     break;
   default:
     offscreen.background(0,0);
@@ -186,6 +193,11 @@ public void draw(){
     break;
   case '7':
     PT.setup_obj();
+    prev_mode = current_mode;
+    current_mode = key;
+    break;
+  case '8':
+    PS.setup_obj();
     prev_mode = current_mode;
     current_mode = key;
     break;
@@ -718,9 +730,9 @@ class ParticleSystem {
     }
   }
 
-  public void display() {
+  public void display(PGraphics offscreen) {
 
-    shape(particleShape);
+    offscreen.shape(particleShape);
   }
 }
 
@@ -742,10 +754,14 @@ class Particles{
     hint(DISABLE_DEPTH_MASK);
   } 
 
+  public void setup_obj(){
+    
+  }
+
   public void draw_obj(PVector surfaceMouse, PGraphics offscreen) {
     offscreen.background(0);
     ps.update();
-    ps.display();
+    ps.display(offscreen);
     
     ps.setEmitter(surfaceMouse.x,surfaceMouse.y);
     

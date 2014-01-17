@@ -8,8 +8,10 @@ PGraphics offscreen;
 
 PImage imgMask;
 
-int current_mode = 0;
-int prev_mode = 0;
+char current_mode = '0';
+char prev_mode = '0';
+
+boolean cursor = true;
 
 //mode 1
 ConwaySprinkles CS;
@@ -28,6 +30,9 @@ Nebula Neb;
 
 //mode 6
 FractalTree FT;
+
+//mode 7
+PenroseTile PT;
 
 void setup(){
   // Keystone will only work with P3D or OPENGL renderers, 
@@ -52,10 +57,11 @@ void setup(){
   NS = new NoiseSphere(offscreen);
   Neb = new Nebula(offscreen);
   FT = new FractalTree(offscreen);
+  PT = new PenroseTile(offscreen);
   
   imgMask = loadImage("mask.png");
   
-  test
+
 }
 
 void setup_default(){
@@ -64,6 +70,7 @@ void setup_default(){
 }
 
 void draw(){
+
   //noCursor();
   
     // Convert the mouse coordinate into surface coordinates
@@ -76,31 +83,38 @@ void draw(){
   
   offscreen.resetShader();
   switch(current_mode){
-  case 0:
+  case '0':
     offscreen.background(0,0);
     break;
-  case 1: 
+  case '1': 
     CS.draw_obj(surfaceMouse, offscreen);
     break;
-  case 2: 
+  case '2': 
     Mon.draw_obj(surfaceMouse, offscreen);
     break;
-  case 3: 
+  case '3': 
     Def.draw_obj(surfaceMouse, offscreen);
     break;
-  case 4: 
+  case '4': 
     NS.draw_obj(surfaceMouse, offscreen);
     break;
-   case 5: 
+   case '5': 
     Neb.draw_obj(surfaceMouse, offscreen);
     break;
-  case 6: 
+  case '6': 
     FT.draw_obj(surfaceMouse, offscreen);
+    break;
+  case '7':
+    PT.draw_obj(surfaceMouse, offscreen);
     break;
   default:
     offscreen.background(0,0);
     break;
   }
+  /*offscreen.fill(255);
+  offscreen.textSize(16);
+  offscreen.text("Frame rate: " + int(frameRate), offscreen.width/2, offscreen.height/2);*/
+  println("Frame rate: " + int(frameRate), offscreen.width/2, offscreen.height/2);
   offscreen.endDraw();
   //image(offscreen, 0, 0, offscreen.width, offscreen.height);
   // most likely, you'll want a black background to minimize
@@ -120,45 +134,57 @@ void draw(){
   case '0':
     setup_default();
     prev_mode = current_mode;
-    current_mode = 0;
+    current_mode = key;
     break;
   case '1': 
     CS.setup_obj();
     prev_mode = current_mode;
-    current_mode = 1;
+    current_mode = key;
     break;
   case '2': 
     Mon.setup_obj();
     prev_mode = current_mode;
-    current_mode = 2;
+    current_mode = key;
     break;
   case '3': 
     Def.setup_obj();
     prev_mode = current_mode;
-    current_mode = 3;
+    current_mode = key;
     break;
   case '4': 
     NS.setup_obj();
     prev_mode = current_mode;
-    current_mode = 4;
+    current_mode = key;
     break;
   case '5': 
     Neb.setup_obj();
     prev_mode = current_mode;
-    current_mode = 5;
+    current_mode = key;
     break;
   case '6': 
     FT.setup_obj();
     prev_mode = current_mode;
-    current_mode = 6;
+    current_mode = key;
     break;
+  case '7':
+    PT.setup_obj();
+    prev_mode = current_mode;
+    current_mode = key;
+    break;
+
+  //CONTROL KEYS
   case 'c':
     // enter/leave calibration mode, where surfaces can be warped 
     // and moved
     ks.toggleCalibration();
     break;
   case 'p':
-    noCursor();
+    if (cursor == true){
+      noCursor();
+    }
+    else{
+      cursor();
+    }
     break;
   case 'l':
     // loads the saved layout
@@ -176,31 +202,35 @@ void draw(){
   
   
   switch(prev_mode){
-  case 0:
+  case '0':
     break;
-  case 1: 
+  case '1': 
     println("inactivate CS");
     CS.pause_obj();
     //CS = new ConwaySprinkles(offscreen);
     break;
-  case 2: 
+  case '2': 
     Mon.pause_obj();
     break;
-  case 3: 
+  case '3': 
     Def.pause_obj();
     break;
-  case 4: 
+  case '4': 
     NS.pause_obj();
     break;
-  case 5: 
+  case '5': 
     Neb.pause_obj();
     break;
-  case 6: 
+  case '6': 
     FT.pause_obj();
+    break;
+  case '7': 
+    PT.pause_obj();
     break;
   default:
     break;
   }
+  resetShader();
 }
 
 

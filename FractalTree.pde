@@ -22,7 +22,7 @@ void setup_obj(){
 }
 
 void pause_obj(){
- //break;
+ resetShader(TRIANGLES);
 }
 
 void draw_obj(PVector surfaceMouse, PGraphics offscreen) {
@@ -40,6 +40,7 @@ void draw_obj(PVector surfaceMouse, PGraphics offscreen) {
   // Move to the end of that line
   offscreen.translate(0,-120);
   // Start the recursive branching!
+  //return 1;
   branch(120);
 
 }

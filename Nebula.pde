@@ -23,7 +23,7 @@ void setup_obj() {
 }
 
 void pause_obj(){
-  offscreen.resetShader();
+  offscreen.resetShader(TRIANGLES);
 }
 
 void draw_obj(PVector surfaceMouse, PGraphics offscreen) {

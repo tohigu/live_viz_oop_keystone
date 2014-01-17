@@ -37,7 +37,7 @@ class Monjori {
 
   void pause_obj() {
     //offscreen.stroke(0, 0);
-    offscreen.resetShader();
+    resetShader(TRIANGLES);
   }
 }
 

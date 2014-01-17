@@ -26,8 +26,10 @@ PGraphics offscreen;
 
 PImage imgMask;
 
-int current_mode = 0;
-int prev_mode = 0;
+char current_mode = '0';
+char prev_mode = '0';
+
+boolean cursor = true;
 
 //mode 1
 ConwaySprinkles CS;
@@ -46,6 +48,9 @@ Nebula Neb;
 
 //mode 6
 FractalTree FT;
+
+//mode 7
+PenroseTile PT;
 
 public void setup(){
   // Keystone will only work with P3D or OPENGL renderers, 
@@ -70,10 +75,11 @@ public void setup(){
   NS = new NoiseSphere(offscreen);
   Neb = new Nebula(offscreen);
   FT = new FractalTree(offscreen);
+  PT = new PenroseTile(offscreen);
   
   imgMask = loadImage("mask.png");
   
-  
+
 }
 
 public void setup_default(){
@@ -82,6 +88,7 @@ public void setup_default(){
 }
 
 public void draw(){
+
   //noCursor();
   
     // Convert the mouse coordinate into surface coordinates
@@ -94,31 +101,38 @@ public void draw(){
   
   offscreen.resetShader();
   switch(current_mode){
-  case 0:
+  case '0':
     offscreen.background(0,0);
     break;
-  case 1: 
+  case '1': 
     CS.draw_obj(surfaceMouse, offscreen);
     break;
-  case 2: 
+  case '2': 
     Mon.draw_obj(surfaceMouse, offscreen);
     break;
-  case 3: 
+  case '3': 
     Def.draw_obj(surfaceMouse, offscreen);
     break;
-  case 4: 
+  case '4': 
     NS.draw_obj(surfaceMouse, offscreen);
     break;
-   case 5: 
+   case '5': 
     Neb.draw_obj(surfaceMouse, offscreen);
     break;
-  case 6: 
+  case '6': 
     FT.draw_obj(surfaceMouse, offscreen);
+    break;
+  case '7':
+    PT.draw_obj(surfaceMouse, offscreen);
     break;
   default:
     offscreen.background(0,0);
     break;
   }
+  /*offscreen.fill(255);
+  offscreen.textSize(16);
+  offscreen.text("Frame rate: " + int(frameRate), offscreen.width/2, offscreen.height/2);*/
+  println("Frame rate: " + PApplet.parseInt(frameRate), offscreen.width/2, offscreen.height/2);
   offscreen.endDraw();
   //image(offscreen, 0, 0, offscreen.width, offscreen.height);
   // most likely, you'll want a black background to minimize
@@ -138,45 +152,57 @@ public void draw(){
   case '0':
     setup_default();
     prev_mode = current_mode;
-    current_mode = 0;
+    current_mode = key;
     break;
   case '1': 
     CS.setup_obj();
     prev_mode = current_mode;
-    current_mode = 1;
+    current_mode = key;
     break;
   case '2': 
     Mon.setup_obj();
     prev_mode = current_mode;
-    current_mode = 2;
+    current_mode = key;
     break;
   case '3': 
     Def.setup_obj();
     prev_mode = current_mode;
-    current_mode = 3;
+    current_mode = key;
     break;
   case '4': 
     NS.setup_obj();
     prev_mode = current_mode;
-    current_mode = 4;
+    current_mode = key;
     break;
   case '5': 
     Neb.setup_obj();
     prev_mode = current_mode;
-    current_mode = 5;
+    current_mode = key;
     break;
   case '6': 
     FT.setup_obj();
     prev_mode = current_mode;
-    current_mode = 6;
+    current_mode = key;
     break;
+  case '7':
+    PT.setup_obj();
+    prev_mode = current_mode;
+    current_mode = key;
+    break;
+
+  //CONTROL KEYS
   case 'c':
     // enter/leave calibration mode, where surfaces can be warped 
     // and moved
     ks.toggleCalibration();
     break;
   case 'p':
-    noCursor();
+    if (cursor == true){
+      noCursor();
+    }
+    else{
+      cursor();
+    }
     break;
   case 'l':
     // loads the saved layout
@@ -194,31 +220,35 @@ public void draw(){
   
   
   switch(prev_mode){
-  case 0:
+  case '0':
     break;
-  case 1: 
+  case '1': 
     println("inactivate CS");
     CS.pause_obj();
     //CS = new ConwaySprinkles(offscreen);
     break;
-  case 2: 
+  case '2': 
     Mon.pause_obj();
     break;
-  case 3: 
+  case '3': 
     Def.pause_obj();
     break;
-  case 4: 
+  case '4': 
     NS.pause_obj();
     break;
-  case 5: 
+  case '5': 
     Neb.pause_obj();
     break;
-  case 6: 
+  case '6': 
     FT.pause_obj();
+    break;
+  case '7': 
+    PT.pause_obj();
     break;
   default:
     break;
   }
+  resetShader();
 }
 
 
@@ -337,7 +367,7 @@ public void setup_obj(){
 }
 
 public void pause_obj(){
- //break;
+ resetShader(TRIANGLES);
 }
 
 public void draw_obj(PVector surfaceMouse, PGraphics offscreen) {
@@ -355,6 +385,7 @@ public void draw_obj(PVector surfaceMouse, PGraphics offscreen) {
   // Move to the end of that line
   offscreen.translate(0,-120);
   // Start the recursive branching!
+  //return 1;
   branch(120);
 
 }
@@ -383,6 +414,80 @@ public void branch(float h) {
   }
 }
 
+}
+class LSystem 
+{
+  int steps = 0;
+
+  String axiom;
+  String rule;
+  String production;
+
+  float startLength;
+  float drawLength;
+  float theta;
+
+  int generations;
+
+  LSystem() {
+    axiom = "F";
+    rule = "F+F-F";
+    startLength = 190.0f;
+    theta = radians(120.0f);
+    reset();
+  }
+
+  public void reset() {
+    production = axiom;
+    drawLength = startLength;
+    generations = 0;
+  }
+
+  public int getAge() {
+    return generations;
+  }
+
+  public void render() {
+    translate(width/2, height/2);
+    steps += 5;          
+    if (steps > production.length()) {
+      steps = production.length();
+    }
+    for (int i = 0; i < steps; i++) {
+      char step = production.charAt(i);
+      if (step == 'F') {
+        rect(0, 0, -drawLength, -drawLength);
+        noFill();
+        translate(0, -drawLength);
+      } 
+      else if (step == '+') {
+        rotate(theta);
+      } 
+      else if (step == '-') {
+        rotate(-theta);
+      } 
+      else if (step == '[') {
+        pushMatrix();
+      } 
+      else if (step == ']') {
+        popMatrix();            
+      }
+    }
+  }
+
+  public void simulate(int gen) {
+    while (getAge() < gen) {
+      production = iterate(production, rule);
+    }
+  }
+
+  public String iterate(String prod_, String rule_) {
+    drawLength = drawLength * 0.6f;
+    generations++;
+    String newProduction = prod_;          
+    newProduction = newProduction.replaceAll("F", rule_);
+    return newProduction;
+  }
 }
 /**
  * Monjori. 
@@ -423,7 +528,7 @@ class Monjori {
 
   public void pause_obj() {
     //offscreen.stroke(0, 0);
-    offscreen.resetShader();
+    resetShader(TRIANGLES);
   }
 }
 
@@ -452,7 +557,7 @@ public void setup_obj() {
 }
 
 public void pause_obj(){
-  offscreen.resetShader();
+  offscreen.resetShader(TRIANGLES);
 }
 
 public void draw_obj(PVector surfaceMouse, PGraphics offscreen) {
@@ -524,6 +629,133 @@ public void pause_obj(){
  }
 
 
+class Particle {
+
+  PVector velocity;
+  float lifespan = 255;
+  
+  PShape part;
+  float partSize;
+  
+  PVector gravity = new PVector(0,0.1f);
+
+
+  Particle(PImage sprite) {
+    partSize = random(10,60);
+    part = createShape();
+    part.beginShape(QUAD);
+    part.noStroke();
+    part.texture(sprite);
+    part.normal(0, 0, 1);
+    part.vertex(-partSize/2, -partSize/2, 0, 0);
+    part.vertex(+partSize/2, -partSize/2, sprite.width, 0);
+    part.vertex(+partSize/2, +partSize/2, sprite.width, sprite.height);
+    part.vertex(-partSize/2, +partSize/2, 0, sprite.height);
+    part.endShape();
+    
+    rebirth(width/2,height/2);
+    lifespan = random(255);
+  }
+
+  public PShape getShape() {
+    return part;
+  }
+  
+  public void rebirth(float x, float y) {
+    float a = random(TWO_PI);
+    float speed = random(0.5f,4);
+    velocity = new PVector(cos(a), sin(a));
+    velocity.mult(speed);
+    lifespan = 255;   
+    part.resetMatrix();
+    part.translate(x, y); 
+  }
+  
+  public boolean isDead() {
+    if (lifespan < 0) {
+     return true;
+    } else {
+     return false;
+    } 
+  }
+  
+
+  public void update() {
+    lifespan = lifespan - 1;
+    velocity.add(gravity);
+    
+    part.setTint(color(255,lifespan));
+    part.translate(velocity.x, velocity.y);
+  }
+}
+class ParticleSystem {
+  ArrayList<Particle> particles;
+
+  PShape particleShape;
+
+  ParticleSystem(int n, PImage sprite) {
+    particles = new ArrayList<Particle>();
+    particleShape = createShape(PShape.GROUP);
+
+    for (int i = 0; i < n; i++) {
+      Particle p = new Particle(sprite);
+      particles.add(p);
+      particleShape.addChild(p.getShape());
+    }
+  }
+
+  public void update() {
+    for (Particle p : particles) {
+      p.update();
+    }
+  }
+
+  public void setEmitter(float x, float y) {
+    for (Particle p : particles) {
+      if (p.isDead()) {
+        p.rebirth(x, y);
+      }
+    }
+  }
+
+  public void display() {
+
+    shape(particleShape);
+  }
+}
+
+// Particles, by Daniel Shiffman.
+
+class Particles{
+  ParticleSystem ps;
+  PImage sprite;  
+
+  public Particles(PGraphics offscreen) {
+    //size(1024, 768, P2D);
+    //orientation(LANDSCAPE);
+    sprite = loadImage("sprite.png");
+    ps = new ParticleSystem(500, sprite);
+
+    // Writing to the depth buffer is disabled to avoid rendering
+    // artifacts due to the fact that the particles are semi-transparent
+    // but not z-sorted.
+    hint(DISABLE_DEPTH_MASK);
+  } 
+
+  public void draw_obj(PVector surfaceMouse, PGraphics offscreen) {
+    offscreen.background(0);
+    ps.update();
+    ps.display();
+    
+    ps.setEmitter(surfaceMouse.x,surfaceMouse.y);
+    
+    offscreen.fill(255);
+    //textSize(16);
+    //text("Frame rate: " + int(frameRate), 10, 20);
+    
+  }
+}
+
 class Pelo {
   
   float z ;
@@ -571,6 +803,185 @@ class Pelo {
     offscreen.endShape();
   }
 }
+
+class PenroseLSystem extends LSystem {
+
+  int steps = 0;
+  float somestep = 0.1f;
+  String ruleW;
+  String ruleX;
+  String ruleY;
+  String ruleZ;
+
+  PenroseLSystem() {
+    axiom = "[X]++[X]++[X]++[X]++[X]";
+    ruleW = "YF++ZF4-XF[-YF4-WF]++";
+    ruleX = "+YF--ZF[3-WF--XF]+";
+    ruleY = "-WF++XF[+++YF++ZF]-";
+    ruleZ = "--YF++++WF[+ZF++++XF]--XF";
+    startLength = 460.0f;
+    theta = radians(36);  
+    reset();
+  }
+
+  public void useRule(String r_) {
+    rule = r_;
+  }
+
+  public void useAxiom(String a_) {
+    axiom = a_;
+  }
+
+  public void useLength(float l_) {
+    startLength = l_;
+  }
+
+  public void useTheta(float t_) {
+    theta = radians(t_);
+  }
+
+  public void reset() {
+    production = axiom;
+    drawLength = startLength;
+    generations = 0;
+  }
+
+  public int getAge() {
+    return generations;
+  }
+
+  public void render(PGraphics offscreen) {
+    offscreen.line(0, 0, 0, -drawLength);
+    offscreen.translate(offscreen.width/2, offscreen.height/2);
+    int pushes = 0;
+    int repeats = 1;
+    steps += 12;          
+    if (steps > production.length()) {
+      steps = production.length();
+    }
+
+    for (int i = 0; i < steps; i++) {
+      char step = production.charAt(i);
+      if (step == 'F') {
+        offscreen.stroke(255, 60);
+        for (int j = 0; j < repeats; j++) {
+          offscreen.line(0, 0, 0, -drawLength);
+          offscreen.noFill();
+          offscreen.translate(0, -drawLength);
+        }
+        repeats = 1;
+      } 
+      else if (step == '+') {
+        for (int j = 0; j < repeats; j++) {
+          offscreen.rotate(theta);
+        }
+        repeats = 1;
+      } 
+      else if (step == '-') {
+        for (int j =0; j < repeats; j++) {
+          offscreen.rotate(-theta);
+        }
+        repeats = 1;
+      } 
+      else if (step == '[') {
+        pushes++;            
+        offscreen.pushMatrix();
+      } 
+      else if (step == ']') {
+        offscreen.popMatrix();
+        pushes--;
+      } 
+      else if ( (step >= 48) && (step <= 57) ) {
+        repeats = (int)step - 48;
+      }
+    }
+
+    // Unpush if we need too
+    while (pushes > 0) {
+      offscreen.popMatrix();
+      pushes--;
+    }
+  }
+
+  public String iterate(String prod_, String rule_) {
+    String newProduction = "";
+    for (int i = 0; i < prod_.length(); i++) {
+      char step = production.charAt(i);
+      if (step == 'W') {
+        newProduction = newProduction + ruleW;
+      } 
+      else if (step == 'X') {
+        newProduction = newProduction + ruleX;
+      }
+      else if (step == 'Y') {
+        newProduction = newProduction + ruleY;
+      }  
+      else if (step == 'Z') {
+        newProduction = newProduction + ruleZ;
+      } 
+      else {
+        if (step != 'F') {
+          newProduction = newProduction + step;
+        }
+      }
+    }
+
+    drawLength = drawLength * 0.5f;
+    generations++;
+    return newProduction;
+  }
+
+}
+
+/** 
+ * Penrose Tile L-System 
+ * by Geraldine Sarmiento.
+ *  
+ * This code was based on Patrick Dwyer's L-System class. 
+ */
+
+ class PenroseTile{
+
+	PenroseLSystem ds;
+	int steps = 0;
+	  float somestep = 0.1f;
+	  String ruleW;
+	  String ruleX;
+	  String ruleY;
+	  String ruleZ;
+
+	public PenroseTile(PGraphics offscreen) {
+	  //size(640, 360);
+	  //frameRate(7);
+	  ds = new PenroseLSystem();
+	  ds.simulate(4);
+	}
+
+	public void setup_obj(){
+
+	}
+
+	public void pause_obj(){
+		println("changeFR");
+		frameRate(60);
+	}
+
+	public void draw_obj(PVector surfaceMouse, PGraphics offscreen) {
+		println("testttttt");
+		frameRate(7);
+	  	  offscreen.background(0);
+	  	  ds.render(offscreen);
+
+
+	   
+
+	}
+
+}
+
+
+
+
 ///**
 // * Spore 1 
 // * by Mike Davis. 

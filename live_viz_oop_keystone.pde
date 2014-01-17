@@ -55,7 +55,7 @@ void setup(){
   
   imgMask = loadImage("mask.png");
   
-  
+  test
 }
 
 void setup_default(){

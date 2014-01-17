@@ -33,7 +33,7 @@ void setup(){
   // Keystone will only work with P3D or OPENGL renderers, 
   // since it relies on texture mapping to deform
   //size(800, 600, P3D);
-  size(1024, 768, P3D);
+  size(displayWidth + 50, displayHeight + 50, P3D);
   ks = new Keystone(this);
   surface = ks.createCornerPinSurface(512, 700, 20);
   surface2 = ks.createCornerPinSurface(512, 700, 20);
